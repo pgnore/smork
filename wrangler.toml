@@ -1,0 +1,9 @@
+# wrangler.toml — Cloudflare Pages config
+name = "smork-quiz"
+compatibility_date = "2024-12-01"
+pages_build_output_dir = "dist"
+
+# KV binding
+[[kv_namespaces]]
+binding = "SMORK_KV"
+id = "297dceff8bc146918dcde08cc8985294"
