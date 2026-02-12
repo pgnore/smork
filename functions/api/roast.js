@@ -87,7 +87,7 @@ ${profile}
 
 Write ~180 word personalized roast. Be SPECIFIC to their answers. Include: 1) Devastating opener about their job 2) Funny scenario of an AI agent doing their routine 3) The one thing keeping them employed (backhanded) 4) One sharp survival tip (with attitude). No bullets/headers. Dark humor. End with a one-liner.
 
-IMPORTANT: Output PLAIN TEXT only. Do NOT use markdown formatting — no **, no *, no #, no bullet points. Just raw text paragraphs.`;
+You may use inline markdown formatting like **bold**, *italic*, and ~~strikethrough~~ for emphasis where it adds punch. Do NOT use headers (#), bullet points, or numbered lists.`;
 
     const r = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",

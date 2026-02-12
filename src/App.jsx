@@ -1579,6 +1579,13 @@ function ResourceSection({ resourceKey }) {
   );
 }
 
+function renderInlineMarkdown(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/~~(.+?)~~/g, '<s>$1</s>');
+}
+
 function AIVerdict({ answers, score, topJobs }) {
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -1608,7 +1615,7 @@ function AIVerdict({ answers, score, topJobs }) {
   return (
     <div style={{ padding: 24, border: "1px solid #222", background: "#0a0a0a", animation: "fadeSlideIn 0.6s ease 0.5s both" }}>
       <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: "#ff0040", letterSpacing: "0.2em", marginBottom: 12, textTransform: "uppercase" }}>▸ SMORK'S VERDICT</div>
-      <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 15, color: "#ccc", lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{analysis}</div>
+      <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 15, color: "#ccc", lineHeight: 1.8, whiteSpace: "pre-wrap" }} dangerouslySetInnerHTML={{ __html: renderInlineMarkdown(analysis) }} />
     </div>
   );
 }
