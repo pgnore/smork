@@ -1910,13 +1910,36 @@ function ShareActions({ score, verdict, topJobs, answers }) {
   const [challengeCopied, setChallengeCopied] = useState(false);
   const [shareImgUrl, setShareImgUrl] = useState(null);
   const [imgDownloaded, setImgDownloaded] = useState(false);
+  const [shareUrl, setShareUrl] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const primary = JOB_PROFILES[topJobs[0]] || JOB_PROFILES["admin"];
 
-  // Generate share image on mount
+  // Generate share image on mount and upload for OG tags
   useEffect(() => {
     try {
-      const url = generateShareImage(score, verdict, primary.title, primary.icon);
-      setShareImgUrl(url);
+      const dataUrl = generateShareImage(score, verdict, primary.title, primary.icon);
+      setShareImgUrl(dataUrl);
+      // Check if we already have a share URL cached
+      try {
+        const saved = JSON.parse(localStorage.getItem("smork-results") || "{}");
+        if (saved.shareUrl) { setShareUrl(saved.shareUrl); return; }
+      } catch {}
+      // Upload to get a shareable URL with OG tags
+      setUploading(true);
+      const challenge = encodeResults(answers, score);
+      fetch("/api/share", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: dataUrl, score, job: primary.title, verdict: verdict.title, challenge }),
+      }).then(r => r.json()).then(d => {
+        if (d.url) {
+          setShareUrl(d.url);
+          try {
+            const saved = JSON.parse(localStorage.getItem("smork-results") || "{}");
+            saved.shareUrl = d.url;
+            localStorage.setItem("smork-results", JSON.stringify(saved));
+          } catch {}
+        }
+      }).catch(() => {}).finally(() => setUploading(false));
     } catch (e) { console.error("Image gen failed:", e); }
   }, [score, verdict, primary]);
 
@@ -1984,17 +2007,20 @@ function ShareActions({ score, verdict, topJobs, answers }) {
       </button>
 
       {/* Share buttons */}
-      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: "#ff0040", letterSpacing: "0.2em", marginTop: 24, marginBottom: 8, textTransform: "uppercase" }}>▸ SHARE YOUR SCORE</div>
+      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: "#ff0040", letterSpacing: "0.2em", marginTop: 24, marginBottom: 8, textTransform: "uppercase" }}>▸ SHARE YOUR SCORE {uploading && <span style={{ color: "#444" }}>(preparing link...)</span>}</div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
         <ShareBtn label="𝕏 TWITTER" onClick={() => {
+          const url = shareUrl || "https://smork.co";
           const text = `${verdict.icon} I scored ${score}/100 on the AI Replaceability Index: "${verdict.title}"\n\nHow cooked are you?`;
-          window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent("https://smork.co")}`, "_blank");
+          window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, "_blank");
         }} />
         <ShareBtn label="💼 LINKEDIN" onClick={() => {
-          window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent("https://smork.co")}`, "_blank");
+          const url = shareUrl || "https://smork.co";
+          window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, "_blank");
         }} />
         <ShareBtn label="🧵 THREADS" onClick={() => {
-          const text = `${verdict.icon} I scored ${score}/100 on the AI Replaceability Index: "${verdict.title}"\n\nHow cooked are you? → smork.co`;
+          const url = shareUrl || "https://smork.co";
+          const text = `${verdict.icon} I scored ${score}/100 on the AI Replaceability Index: "${verdict.title}"\n\nHow cooked are you? → ${url}`;
           window.open(`https://www.threads.net/intent/post?text=${encodeURIComponent(text)}`, "_blank");
         }} />
         <ShareBtn label="📸 INSTAGRAM" onClick={() => {
@@ -2004,9 +2030,10 @@ function ShareActions({ score, verdict, topJobs, answers }) {
       </div>
       {typeof navigator !== "undefined" && navigator.share && (
         <ShareBtn label="📤 SHARE WITH IMAGE" onClick={async () => {
-          const text = `${verdict.icon} I scored ${score}/100 on the AI Replaceability Index: "${verdict.title}"\n\nHow cooked are you? → smork.co`;
+          const url = shareUrl || "https://smork.co";
+          const text = `${verdict.icon} I scored ${score}/100 on the AI Replaceability Index: "${verdict.title}"\n\nHow cooked are you? → ${url}`;
           try {
-            const shareData = { title: "Smork AI Replaceability Quiz", text, url: "https://smork.co" };
+            const shareData = { title: "Smork AI Replaceability Quiz", text, url };
             if (shareImgUrl) {
               const res = await fetch(shareImgUrl);
               const blob = await res.blob();
