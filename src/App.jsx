@@ -2001,22 +2001,22 @@ function ShareActions({ score, verdict, topJobs, answers }) {
           downloadImage();
           setTimeout(() => window.open("https://www.instagram.com/", "_blank"), 500);
         }} subtitle="Downloads image" />
-        {typeof navigator !== "undefined" && navigator.share && (
-          <ShareBtn label="📤 MORE..." onClick={async () => {
-            const text = `${verdict.icon} I scored ${score}/100 on the AI Replaceability Index: "${verdict.title}"\n\nHow cooked are you? → smork.co`;
-            try {
-              const shareData = { title: "Smork AI Replaceability Quiz", text, url: "https://smork.co" };
-              if (shareImgUrl) {
-                const res = await fetch(shareImgUrl);
-                const blob = await res.blob();
-                const file = new File([blob], `smork-score-${score}.png`, { type: "image/png" });
-                if (navigator.canShare && navigator.canShare({ files: [file] })) shareData.files = [file];
-              }
-              await navigator.share(shareData);
-            } catch {}
-          }} subtitle="Slack, WhatsApp..." />
-        )}
       </div>
+      {typeof navigator !== "undefined" && navigator.share && (
+        <ShareBtn label="📤 SHARE WITH IMAGE" onClick={async () => {
+          const text = `${verdict.icon} I scored ${score}/100 on the AI Replaceability Index: "${verdict.title}"\n\nHow cooked are you? → smork.co`;
+          try {
+            const shareData = { title: "Smork AI Replaceability Quiz", text, url: "https://smork.co" };
+            if (shareImgUrl) {
+              const res = await fetch(shareImgUrl);
+              const blob = await res.blob();
+              const file = new File([blob], `smork-score-${score}.png`, { type: "image/png" });
+              if (navigator.canShare && navigator.canShare({ files: [file] })) shareData.files = [file];
+            }
+            await navigator.share(shareData);
+          } catch {}
+        }} subtitle="Slack, WhatsApp, iMessage..." />
+      )}
     </div>
   );
 }
