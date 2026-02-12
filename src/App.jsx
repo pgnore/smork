@@ -1590,7 +1590,16 @@ function AIVerdict({ answers, score, topJobs }) {
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(false);
   const attempted = useRef(false);
-  useEffect(() => { if (!attempted.current) { attempted.current = true; go(); } }, []);
+  useEffect(() => {
+    if (!attempted.current) {
+      attempted.current = true;
+      try {
+        const saved = JSON.parse(localStorage.getItem("smork-results") || "{}");
+        if (saved.roast) { setAnalysis(saved.roast); return; }
+      } catch {}
+      go();
+    }
+  }, []);
   async function go() {
     setLoading(true);
     try {
@@ -1601,7 +1610,13 @@ function AIVerdict({ answers, score, topJobs }) {
         body: JSON.stringify({ score, job: primary.title, profile }),
       });
       const d = await r.json();
-      setAnalysis(d.text || "Smork.exe has stopped working.");
+      const text = d.text || "Smork.exe has stopped working.";
+      setAnalysis(text);
+      try {
+        const saved = JSON.parse(localStorage.getItem("smork-results") || "{}");
+        saved.roast = text;
+        localStorage.setItem("smork-results", JSON.stringify(saved));
+      } catch {}
     } catch { setAnalysis("Smork's brain glitched. The irony is not lost on us."); }
     setLoading(false);
   }
