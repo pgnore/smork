@@ -1964,8 +1964,19 @@ export default function App() {
   const [showStats, setShowStats] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  // Check URL for challenge param on mount
+  // Restore saved results and check challenge param on mount
   useEffect(() => {
+    try {
+      const saved = localStorage.getItem("smork-results");
+      if (saved) {
+        const { answers: savedAnswers } = JSON.parse(saved);
+        if (Array.isArray(savedAnswers) && savedAnswers.length > 0) {
+          setAnswers(savedAnswers);
+          setSaved(true);
+          setPhase("results");
+        }
+      }
+    } catch {}
     try {
       const params = new URLSearchParams(window.location?.search || "");
       const ch = params.get("challenge");
@@ -1985,10 +1996,11 @@ export default function App() {
     if (phase === "results" && !saved && answers.length > 0) {
       setSaved(true);
       saveResult(score, topJobs[0], answers);
+      try { localStorage.setItem("smork-results", JSON.stringify({ answers })); } catch {}
     }
   }, [phase]);
 
-  function startQuiz() { setPhase("quiz"); setCurrentQ(0); setAnswers([]); setShowQuestion(true); setSaved(false); setShowChallenge(false); }
+  function startQuiz() { try { localStorage.removeItem("smork-results"); } catch {} setPhase("quiz"); setCurrentQ(0); setAnswers([]); setShowQuestion(true); setSaved(false); setShowChallenge(false); }
 
   function selectOption(i) {
     setAnswers([...answers, { questionId: QUESTIONS[currentQ].id, optionIndex: i }]);
