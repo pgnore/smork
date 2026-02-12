@@ -1890,7 +1890,7 @@ function ShareActions({ score, verdict, topJobs, answers }) {
 
   function copyChallenge() {
     const hash = encodeResults(answers, score);
-    const url = `smork.co?challenge=${hash}`;
+    const url = `https://smork.co?challenge=${hash}`;
     navigator.clipboard.writeText(url).then(() => { setChallengeCopied(true); setTimeout(() => setChallengeCopied(false), 2000); });
   }
 
