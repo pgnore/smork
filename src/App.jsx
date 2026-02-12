@@ -1890,6 +1890,21 @@ function StatsPage({ onBack }) {
    SHARE ACTIONS
    ═══════════════════════════════════════════ */
 
+function ShareBtn({ label, onClick, subtitle }) {
+  return (
+    <button onClick={onClick} style={{
+      padding: "12px 16px", background: "none", border: "1px solid #222", color: "#666",
+      fontFamily: "'Space Mono', monospace", fontSize: 11, cursor: "pointer",
+      letterSpacing: "0.05em", transition: "all 0.3s ease", textAlign: "center",
+    }}
+    onMouseEnter={e => { e.currentTarget.style.borderColor = "#ff0040"; e.currentTarget.style.color = "#ff0040"; }}
+    onMouseLeave={e => { e.currentTarget.style.borderColor = "#222"; e.currentTarget.style.color = "#666"; }}>
+      {label}
+      {subtitle && <div style={{ fontSize: 8, color: "#444", marginTop: 2, letterSpacing: "0.1em" }}>{subtitle}</div>}
+    </button>
+  );
+}
+
 function ShareActions({ score, verdict, topJobs, answers }) {
   const [copied, setCopied] = useState(false);
   const [challengeCopied, setChallengeCopied] = useState(false);
@@ -1967,6 +1982,41 @@ function ShareActions({ score, verdict, topJobs, answers }) {
         onMouseLeave={e => { if (!challengeCopied) { e.target.style.borderColor = "#333"; e.target.style.color = "#888"; } }}>
         {challengeCopied ? "✓ CHALLENGE LINK COPIED" : "⚔️ CHALLENGE A COWORKER"}
       </button>
+
+      {/* Share buttons */}
+      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: "#ff0040", letterSpacing: "0.2em", marginTop: 24, marginBottom: 8, textTransform: "uppercase" }}>▸ SHARE YOUR SCORE</div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+        <ShareBtn label="𝕏 TWITTER" onClick={() => {
+          const text = `${verdict.icon} I scored ${score}/100 on the AI Replaceability Index: "${verdict.title}"\n\nHow cooked are you?`;
+          window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent("https://smork.co")}`, "_blank");
+        }} />
+        <ShareBtn label="💼 LINKEDIN" onClick={() => {
+          window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent("https://smork.co")}`, "_blank");
+        }} />
+        <ShareBtn label="🧵 THREADS" onClick={() => {
+          const text = `${verdict.icon} I scored ${score}/100 on the AI Replaceability Index: "${verdict.title}"\n\nHow cooked are you? → smork.co`;
+          window.open(`https://www.threads.net/intent/post?text=${encodeURIComponent(text)}`, "_blank");
+        }} />
+        <ShareBtn label="📸 INSTAGRAM" onClick={() => {
+          downloadImage();
+          setTimeout(() => window.open("https://www.instagram.com/", "_blank"), 500);
+        }} subtitle="Downloads image" />
+        {typeof navigator !== "undefined" && navigator.share && (
+          <ShareBtn label="📤 MORE..." onClick={async () => {
+            const text = `${verdict.icon} I scored ${score}/100 on the AI Replaceability Index: "${verdict.title}"\n\nHow cooked are you? → smork.co`;
+            try {
+              const shareData = { title: "Smork AI Replaceability Quiz", text, url: "https://smork.co" };
+              if (shareImgUrl) {
+                const res = await fetch(shareImgUrl);
+                const blob = await res.blob();
+                const file = new File([blob], `smork-score-${score}.png`, { type: "image/png" });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) shareData.files = [file];
+              }
+              await navigator.share(shareData);
+            } catch {}
+          }} subtitle="Slack, WhatsApp..." />
+        )}
+      </div>
     </div>
   );
 }
